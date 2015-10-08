@@ -2,11 +2,11 @@ source 'https://github.com/CocoaPods/Specs.git'
 use_frameworks!
 
 target 'NHSelectionView_Example', :exclusive => true do
-  pod "NHSelectionView", :path => "../"
+  pod "NHSelectorView", :path => "../"
 end
 
 target 'NHSelectionView_Tests', :exclusive => true do
-  pod "NHSelectionView", :path => "../"
+  pod "NHSelectorView", :path => "../"
 
   pod 'Specta'
   pod 'Expecta'
