@@ -276,6 +276,10 @@ static CGFloat const kNHSelectorSelectionDefaultHeight = 1.5;
     
     if (newIndex != NSNotFound) {
         [self setSelectedIndex:newIndex animated:YES];
+        
+        if ([self.delegate respondsToSelector:@selector(nhSelectorView:didChangeIndexTo:)]) {
+            [self.delegate nhSelectorView:self didChangeIndexTo:newIndex];
+        }
     }
 }
 
