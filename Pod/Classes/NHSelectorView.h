@@ -15,12 +15,21 @@ typedef NS_ENUM(NSUInteger, NHSelectorViewSelectionStyle) {
 
 NS_ASSUME_NONNULL_BEGIN
 
+@class NHSelectorView;
+
+@protocol NHSelectorViewDelegate <NSObject>
+
+@end
+
 @interface NHSelectorView : UIView
+
+@property (nonatomic, weak) id<NHSelectorViewDelegate> delegate;
 
 @property (nonatomic, strong, readonly) UIView *separatorView;
 
 @property (nonatomic, strong, null_resettable) UIFont *font;
 @property (nonatomic, assign, readonly) NSInteger selectedIndex;
+
 @property (nonatomic, assign) NHSelectorViewSelectionStyle selectionStyle;
 
 - (void)setItems:(nullable NSArray *)items;
