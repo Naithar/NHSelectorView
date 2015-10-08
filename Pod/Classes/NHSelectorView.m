@@ -12,10 +12,12 @@
 [UIFont systemFontOfSize:17]
 
 #define kNHSelectorDefaultNormalColor \
-[UIColor colorWithRed:0.5 green:0.5 blue:0.5 alpha:1]
+[UIColor colorWithRed:0.35 green:0.35 blue:0.35 alpha:1]
 
 #define kNHSelectorDefaultSelectedColor \
 [UIColor colorWithRed:0 green:0 blue:0 alpha:1]
+
+static CGFloat const kNHSelectorSelectionDefaultHeight = 1.5;
 
 @interface NHSelectorView ()
 
@@ -63,6 +65,21 @@
     self.buttonProperties = [NSMutableDictionary new];
     self.buttonProperties[@(UIControlStateNormal)] = kNHSelectorDefaultNormalColor;
     self.buttonProperties[@(UIControlStateSelected)] = kNHSelectorDefaultSelectedColor;
+    
+    self.separatorView = [[UIView alloc] initWithFrame:CGRectMake(0, self.bounds.size.height - 0.5, self.bounds.size.width, 0.5)];
+    self.separatorView.autoresizingMask = ~UIViewAutoresizingNone;
+    self.separatorView.backgroundColor = [UIColor lightGrayColor];
+    [self addSubview:self.separatorView];
+    
+    self.selectionView = [[UIView alloc] init];
+    self.selectionView.backgroundColor = kNHSelectorDefaultNormalColor;
+    self.selectionView.autoresizingMask = ~UIViewAutoresizingNone;
+    [self addSubview:self.selectionView];
+
+    [self sendSubviewToBack:self.selectionView];
+    [self sendSubviewToBack:self.separatorView];
+    
+    self.selectionSize = CGSizeZero;
 }
 
 - (void)clearButtonArray {
@@ -85,11 +102,14 @@
         [button setTitleColor:self.buttonProperties[@(UIControlStateSelected)] forState:UIControlStateSelected];
         [button setTitleColor:self.buttonProperties[@(UIControlStateDisabled)] forState:UIControlStateDisabled];
         [button setTitleColor:self.buttonProperties[@(UIControlStateHighlighted)] forState:UIControlStateHighlighted];
+        button.backgroundColor = [UIColor clearColor];
         button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
         button.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
         button.tintColor = self.tintColor;
+        [button addTarget:self
+                   action:@selector(buttonTouchAction:)
+         forControlEvents:UIControlEventTouchUpInside];
         
-        [button addTarget:self action:@selector(buttonTouchAction:) forControlEvents:UIControlEventTouchUpInside];
         return button;
     };
     
@@ -130,6 +150,41 @@
     }];
     
     self.buttonArray.firstObject.selected = YES;
+    
+    [self resetSelectionView];
+}
+
+- (void)resetSelectionView {
+    if (!self.buttonArray.count) {
+        self.selectionView.frame = CGRectZero;
+        return;
+    }
+    
+    CGFloat singleButtonWidth = self.bounds.size.width / self.buttonArray.count;
+
+    CGFloat xOffset = self.selectionSize.width;
+    CGFloat yOffset = self.selectionSize.height;
+    
+    CGRect selectionViewRect = CGRectMake(singleButtonWidth * self.selectedIndex + xOffset / 2,
+                                          0,
+                                          singleButtonWidth - xOffset,
+                                          0);
+
+    switch (self.selectionStyle) {
+        case NHSelectorViewSelectionStyleDefault:
+            selectionViewRect.origin.y = yOffset / 2;
+            selectionViewRect.size.height = self.bounds.size.height - yOffset;
+            break;
+        case NHSelectorViewSelectionStyleLine: {
+            CGFloat lineHeight = (yOffset <= 0 ? kNHSelectorSelectionDefaultHeight : yOffset);
+            selectionViewRect.origin.y = self.bounds.size.height - lineHeight;
+            selectionViewRect.size.height = lineHeight;
+        } break;
+        default:
+            break;
+    }
+    
+    self.selectionView.frame = selectionViewRect;
 }
 
 - (void)setSelectedIndex:(NSInteger)selectedIndex animated:(BOOL)animated {
@@ -139,7 +194,12 @@
     
     self.buttonArray[self.selectedIndex].selected = NO;
     self.buttonArray[selectedIndex].selected = YES;
+    
     self.selectedIndex = selectedIndex;
+    
+    [UIView animateWithDuration:animated ? 0.3 : 0 animations:^{
+        [self resetSelectionView];
+    }];
 }
 
 - (void)setColor:(UIColor *)color forState:(UIControlState)state {
@@ -198,7 +258,17 @@
 - (void)setSelectionStyle:(NHSelectorViewSelectionStyle)selectionStyle {
     [self willChangeValueForKey:@"selectionStyle"];
     _selectionStyle = selectionStyle;
+    
+    [self resetSelectionView];
     [self didChangeValueForKey:@"selectionStyle"];
+}
+
+- (void)setSelectionSize:(CGSize)selectionSize {
+    [self willChangeValueForKey:@"selectionSize"];
+    _selectionSize = selectionSize;
+    
+    [self resetSelectionView];
+    [self didChangeValueForKey:@"selectionSize"];
 }
 
 - (void)buttonTouchAction:(UIButton *)button {

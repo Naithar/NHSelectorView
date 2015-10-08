@@ -19,12 +19,17 @@ NS_ASSUME_NONNULL_BEGIN
 
 @protocol NHSelectorViewDelegate <NSObject>
 
+- (void)nhSelectorView:(NHSelectorView *)selectorView didChangeIndexTo:(NSInteger)index;
+
 @end
 
 @interface NHSelectorView : UIView
 
 @property (nonatomic, weak) id<NHSelectorViewDelegate> delegate;
 
+@property (nonatomic, assign) CGSize selectionSize;
+
+@property (nonatomic, strong, readonly) UIView *selectionView;
 @property (nonatomic, strong, readonly) UIView *separatorView;
 
 @property (nonatomic, strong, null_resettable) UIFont *font;

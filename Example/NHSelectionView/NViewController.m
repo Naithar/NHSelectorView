@@ -24,8 +24,17 @@
     
     self.selectorView = [[NHSelectorView alloc] initWithFrame:CGRectMake(0, 50, self.view.bounds.size.width, 60)];
     [self.selectorView setItems:@[@"one", @"two", @"three"]];
+    self.selectorView.backgroundColor = [UIColor greenColor];
     self.selectorView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     [self.view addSubview:self.selectorView];
+    
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(4 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        self.selectorView.selectionSize = CGSizeMake(5, 5);
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(4 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        self.selectorView.selectionStyle = NHSelectorViewSelectionStyleLine;
+        });
+    });
 }
 
 - (void)didReceiveMemoryWarning
