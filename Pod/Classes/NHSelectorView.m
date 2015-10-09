@@ -99,14 +99,14 @@ static CGFloat const kNHSelectorSelectionDefaultHeight = 1.5;
             color = self.buttonProperties[@(UIControlStateSelected)] ?: kNHSelectorDefaultSelectedColor;
         }
         else if (button.highlighted) {
-            color = self.buttonProperties[@(UIControlStateHighlighted)] ?: kNHSelectorDefaultNormalColor;
+            color = self.buttonProperties[@(UIControlStateHighlighted)];
         }
         else {
             color = self.buttonProperties[@(UIControlStateNormal)] ?: kNHSelectorDefaultNormalColor;
         }
     }
     else {
-        color = self.buttonProperties[@(UIControlStateDisabled)] ?: kNHSelectorDefaultNormalColor;
+        color = self.buttonProperties[@(UIControlStateDisabled)];
     }
     
     return color;
