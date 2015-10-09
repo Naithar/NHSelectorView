@@ -67,7 +67,7 @@ static CGFloat const kNHSelectorSelectionDefaultHeight = 1.5;
     self.buttonProperties[@(UIControlStateSelected)] = kNHSelectorDefaultSelectedColor;
     
     self.separatorView = [[UIView alloc] initWithFrame:CGRectMake(0, self.bounds.size.height - 0.5, self.bounds.size.width, 0.5)];
-    self.separatorView.autoresizingMask = ~UIViewAutoresizingNone;
+    self.separatorView.autoresizingMask = ~UIViewAutoresizingFlexibleHeight;
     self.separatorView.backgroundColor = [UIColor lightGrayColor];
     [self addSubview:self.separatorView];
     
@@ -75,7 +75,7 @@ static CGFloat const kNHSelectorSelectionDefaultHeight = 1.5;
     self.selectionView.backgroundColor = kNHSelectorDefaultNormalColor;
     self.selectionView.autoresizingMask = ~UIViewAutoresizingNone;
     [self addSubview:self.selectionView];
-
+    
     [self sendSubviewToBack:self.selectionView];
     [self sendSubviewToBack:self.separatorView];
     
@@ -106,6 +106,7 @@ static CGFloat const kNHSelectorSelectionDefaultHeight = 1.5;
         button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
         button.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
         button.tintColor = self.tintColor;
+        button.titleLabel.font = self.font;
         [button addTarget:self
                    action:@selector(buttonTouchAction:)
          forControlEvents:UIControlEventTouchUpInside];
@@ -161,7 +162,7 @@ static CGFloat const kNHSelectorSelectionDefaultHeight = 1.5;
     }
     
     CGFloat singleButtonWidth = self.bounds.size.width / self.buttonArray.count;
-
+    
     CGFloat xOffset = self.selectionSize.width;
     CGFloat yOffset = self.selectionSize.height;
     
@@ -169,7 +170,9 @@ static CGFloat const kNHSelectorSelectionDefaultHeight = 1.5;
                                           0,
                                           singleButtonWidth - xOffset,
                                           0);
-
+    
+    UIViewAutoresizing selectionViewAutoresizingMask = ~UIViewAutoresizingNone;
+    
     switch (self.selectionStyle) {
         case NHSelectorViewSelectionStyleDefault:
             selectionViewRect.origin.y = yOffset / 2;
@@ -179,12 +182,22 @@ static CGFloat const kNHSelectorSelectionDefaultHeight = 1.5;
             CGFloat lineHeight = (yOffset <= 0 ? kNHSelectorSelectionDefaultHeight : yOffset);
             selectionViewRect.origin.y = self.bounds.size.height - lineHeight;
             selectionViewRect.size.height = lineHeight;
+            selectionViewAutoresizingMask = ~UIViewAutoresizingFlexibleHeight;
         } break;
         default:
             break;
     }
     
     self.selectionView.frame = selectionViewRect;
+    self.selectionView.autoresizingMask = selectionViewAutoresizingMask;
+}
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    
+    [self resetSelectionView];
+    
+    [self layoutIfNeeded];
 }
 
 - (void)setSelectedIndex:(NSInteger)selectedIndex animated:(BOOL)animated {
@@ -192,10 +205,23 @@ static CGFloat const kNHSelectorSelectionDefaultHeight = 1.5;
         return;
     }
     
-    self.buttonArray[self.selectedIndex].selected = NO;
-    self.buttonArray[self.selectedIndex].userInteractionEnabled = YES;
-    self.buttonArray[selectedIndex].selected = YES;
-    self.buttonArray[selectedIndex].userInteractionEnabled = NO;
+    UIButton *previousSelectedButton = self.buttonArray[self.selectedIndex];
+    [UIView transitionWithView:previousSelectedButton
+                      duration:animated ? 0.15 : 0
+                       options:UIViewAnimationOptionTransitionCrossDissolve|UIViewAnimationOptionBeginFromCurrentState
+                    animations:^{
+                        previousSelectedButton.selected = NO;
+                        previousSelectedButton.userInteractionEnabled = YES;
+                    } completion:nil];
+    
+    UIButton *currentSelectedButton = self.buttonArray[selectedIndex];
+    [UIView transitionWithView:previousSelectedButton
+                      duration:animated ? 0.15 : 0
+                       options:UIViewAnimationOptionTransitionCrossDissolve|UIViewAnimationOptionBeginFromCurrentState
+                    animations:^{
+                        currentSelectedButton.selected = YES;
+                        currentSelectedButton.userInteractionEnabled = NO;
+                    } completion:nil];
     
     self.selectedIndex = selectedIndex;
     
