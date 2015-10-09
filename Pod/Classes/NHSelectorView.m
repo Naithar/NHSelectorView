@@ -61,7 +61,6 @@ static CGFloat const kNHSelectorSelectionDefaultHeight = 1.5;
 
 - (void)nhCommonInit {
     self.font = kNHSelectorDefaultFont;
-    self.tintColor = kNHSelectorDefaultNormalColor;
     self.buttonProperties = [NSMutableDictionary new];
     self.buttonProperties[@(UIControlStateNormal)] = kNHSelectorDefaultNormalColor;
     self.buttonProperties[@(UIControlStateSelected)] = kNHSelectorDefaultSelectedColor;
@@ -91,6 +90,20 @@ static CGFloat const kNHSelectorSelectionDefaultHeight = 1.5;
     self.buttonArray = nil;
 }
 
+- (UIColor *)tintColorForButton:(UIButton *)button {
+    
+    UIColor *color;
+    
+    if (button.selected) {
+        color = self.buttonProperties[@(UIControlStateSelected)] ?: kNHSelectorDefaultSelectedColor;
+    }
+    else {
+        color = self.buttonProperties[@(UIControlStateNormal)] ?: kNHSelectorDefaultNormalColor;
+    }
+    
+    return color;
+}
+
 - (void)setItems:(nullable NSArray *)items {
     [self clearButtonArray];
     
@@ -105,7 +118,7 @@ static CGFloat const kNHSelectorSelectionDefaultHeight = 1.5;
         button.backgroundColor = [UIColor clearColor];
         button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
         button.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
-        button.tintColor = self.tintColor;
+        button.tintColor = [self tintColorForButton:button];
         button.titleLabel.font = self.font;
         [button addTarget:self
                    action:@selector(buttonTouchAction:)
@@ -131,7 +144,8 @@ static CGFloat const kNHSelectorSelectionDefaultHeight = 1.5;
         }
         else if ([obj isKindOfClass:[UIImage class]]) {
             button = createButton();
-            [button setImage:obj forState:UIControlStateNormal];
+            [button setImage:[obj imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]
+                    forState:UIControlStateNormal];
             button.imageView.contentMode = UIViewContentModeCenter;
             
             [mutableButtonArray addObject:button];
@@ -150,7 +164,7 @@ static CGFloat const kNHSelectorSelectionDefaultHeight = 1.5;
         [self addSubview:obj];
     }];
     
-    self.buttonArray.firstObject.selected = YES;
+    [self setSelectedIndex:self.selectedIndex animated:NO];
     
     [self resetSelectionView];
 }
@@ -197,6 +211,15 @@ static CGFloat const kNHSelectorSelectionDefaultHeight = 1.5;
     
     [self resetSelectionView];
     
+    CGFloat singleButtonWidth = self.bounds.size.width / self.buttonArray.count;
+    
+    [self.buttonArray enumerateObjectsUsingBlock:^(UIButton * _Nonnull obj,
+                                                   NSUInteger idx,
+                                                   BOOL * _Nonnull stop) {
+        obj.frame = CGRectMake(idx * singleButtonWidth, 0, singleButtonWidth, self.bounds.size.height);
+        obj.autoresizingMask = ~UIViewAutoresizingNone;
+    }];
+    
     [self layoutIfNeeded];
 }
 
@@ -212,6 +235,7 @@ static CGFloat const kNHSelectorSelectionDefaultHeight = 1.5;
                     animations:^{
                         previousSelectedButton.selected = NO;
                         previousSelectedButton.userInteractionEnabled = YES;
+                        previousSelectedButton.tintColor = [self tintColorForButton:previousSelectedButton];
                     } completion:nil];
     
     UIButton *currentSelectedButton = self.buttonArray[selectedIndex];
@@ -221,6 +245,7 @@ static CGFloat const kNHSelectorSelectionDefaultHeight = 1.5;
                     animations:^{
                         currentSelectedButton.selected = YES;
                         currentSelectedButton.userInteractionEnabled = NO;
+                        currentSelectedButton.tintColor = [self tintColorForButton:currentSelectedButton];
                     } completion:nil];
     
     self.selectedIndex = selectedIndex;
@@ -256,6 +281,7 @@ static CGFloat const kNHSelectorSelectionDefaultHeight = 1.5;
                                                    BOOL * _Nonnull stop) {
         [obj setTitleColor:self.buttonProperties[@(state)]
                   forState:state];
+        obj.tintColor = [self tintColorForButton:obj];
     }];
 }
 
@@ -274,16 +300,6 @@ static CGFloat const kNHSelectorSelectionDefaultHeight = 1.5;
         obj.titleLabel.font = _font;
     }];
     [self didChangeValueForKey:@"font"];
-}
-
-- (void)setTintColor:(UIColor *)tintColor {
-    [super setTintColor:tintColor];
-    
-    [self.buttonArray enumerateObjectsUsingBlock:^(UIButton * _Nonnull obj,
-                                                   NSUInteger idx,
-                                                   BOOL * _Nonnull stop) {
-        obj.tintColor = self.tintColor;
-    }];
 }
 
 - (void)setSelectionStyle:(NHSelectorViewSelectionStyle)selectionStyle {
