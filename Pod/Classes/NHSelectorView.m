@@ -193,13 +193,18 @@ static CGFloat const kNHSelectorSelectionDefaultHeight = 1.5;
     }
     
     self.buttonArray[self.selectedIndex].selected = NO;
+    self.buttonArray[self.selectedIndex].userInteractionEnabled = YES;
     self.buttonArray[selectedIndex].selected = YES;
+    self.buttonArray[selectedIndex].userInteractionEnabled = NO;
     
     self.selectedIndex = selectedIndex;
     
-    [UIView animateWithDuration:animated ? 0.3 : 0 animations:^{
-        [self resetSelectionView];
-    }];
+    [UIView animateWithDuration:animated ? 0.3 : 0
+                          delay:0
+                        options:UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         [self resetSelectionView];
+                     } completion:nil];
 }
 
 - (void)setColor:(UIColor *)color forState:(UIControlState)state {
