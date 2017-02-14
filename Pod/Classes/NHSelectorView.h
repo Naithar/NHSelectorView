@@ -25,6 +25,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface NHSelectorView : UIView
 
+@property (nonatomic, assign) BOOL shouldReset;
+
 @property (nonatomic, weak) id<NHSelectorViewDelegate> delegate;
 
 @property (nonatomic, assign) CGSize selectionSize;
